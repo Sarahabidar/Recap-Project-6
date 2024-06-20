@@ -9,10 +9,34 @@ export default async function handler(request, response) {
   }
 
   //const place = places.find((place) => place.id === id);
-  const place = await Place.findById(id);
-  if (!place) {
-    return response.status(404).json({ status: "Not found" });
-  }
+  if (request.method === "GET") {
+    try {
+      const place = await Place.findById(id);
+      if (!place) {
+        return response.status(404).json({ status: "Not found" });
+      }
 
-  response.status(200).json(place);
+      response.status(200).json(place);
+    } catch (error) {
+      return response
+        .status(500)
+        .json({ status: "Internal Server Error", error: error.message });
+    }
+  } else if (request.method === "PATCH") {
+    try {
+      const placeData = request.body;
+      const updatedPlace = await Place.findByIdAndUpdate(id, placeData);
+
+      if (!updatedPlace) {
+        return response.status(404).json({ status: "Not Found" });
+      }
+      return response
+        .status(200)
+        .json({ status: `Place ${id} updated!`, place: updatedPlace });
+    } catch (error) {
+      return response
+        .status(500)
+        .json({ status: "Internal Server Error", error: error.message });
+    }
+  }
 }
